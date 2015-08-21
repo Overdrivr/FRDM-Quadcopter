@@ -214,3 +214,16 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+
+#############
+## Processor Expert
+#############
+/*.g_c
+/*.g_x
+/*.cwGeneratedFileSetLog
+/Generated_Code
+/Documentation
+/Static_Code
+/Debug
+/ProjectInfo.xml
