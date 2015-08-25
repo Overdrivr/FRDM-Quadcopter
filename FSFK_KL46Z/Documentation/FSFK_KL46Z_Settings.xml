@@ -731,7 +731,7 @@ PE_DEBUGHALT();
       <GetError v="don&amp;apos;t generate code" />
       <GetSentDataNum v="generate code" />
       <GetReceivedDataNum v="generate code" />
-      <GetTxCompleteStatus v="don&amp;apos;t generate code" />
+      <GetTxCompleteStatus v="generate code" />
       <SetEventMask v="don&amp;apos;t generate code" />
       <GetEventMask v="don&amp;apos;t generate code" />
       <SelectBaudRate v="don&amp;apos;t generate code" />
@@ -948,6 +948,25 @@ PE_DEBUGHALT();
     </Methods>
     <Events>
       <EmptySection_DummyValue />
+    </Events>
+  </Bean>
+  <Bean name="RNG1" type="RingBufferUInt8">
+    <Enabled v="Y" />
+    <Properties>
+      <Component_name v="RNG1" />
+      <Buffer_Size v="64" />
+    </Properties>
+    <Methods>
+      <Put v="generate code" />
+      <Get v="generate code" />
+      <NofElements v="generate code" />
+      <NofFreeElements v="generate code" />
+      <Init v="generate code" />
+    </Methods>
+    <Events>
+      <Event_module_name v="Events" />
+      <event name="OnBufferFull" v="don&amp;apos;t generate code" />
+      <event name="OnBufferEmpty" v="don&amp;apos;t generate code" />
     </Events>
   </Bean>
 </PE_PROJECT_SETTINGS_DOCUMENTATION>

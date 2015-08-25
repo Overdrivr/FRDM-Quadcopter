@@ -20,7 +20,7 @@ S_UPPER_DEPS += \
 MQXLITE/psp/cortex_m/core/M0/%.o: ../MQXLITE/psp/cortex_m/core/M0/%.S
 	@echo 'Building file: $<'
 	@echo 'Invoking: Cross ARM GNU Assembler'
-	arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -O3 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections  -g -x assembler-with-cpp -I"C:/Users/B48923/Documents/KDSWorkspace/FSFK_KL46Z/MQXLITE/include" -I"C:/Users/B48923/Documents/KDSWorkspace/FSFK_KL46Z/MQXLITE/config" -I"C:/Users/B48923/Documents/KDSWorkspace/FSFK_KL46Z/MQXLITE/kernel" -I"C:/Users/B48923/Documents/KDSWorkspace/FSFK_KL46Z/MQXLITE/psp/cortex_m" -I"C:/Users/B48923/Documents/KDSWorkspace/FSFK_KL46Z/MQXLITE/psp/cortex_m/core/M0" -I"C:/Users/B48923/Documents/KDSWorkspace/FSFK_KL46Z/MQXLITE/psp/cortex_m/compiler/cwgcc" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" -c -o "$@" "$<"
+	arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -O3 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -Wall  -g -x assembler-with-cpp -I"C:/Users/B48923/Documents/GitHub/FRDM-Quadcopter/FSFK_KL46Z/MQXLITE/include" -I"C:/Users/B48923/Documents/GitHub/FRDM-Quadcopter/FSFK_KL46Z/MQXLITE/config" -I"C:/Users/B48923/Documents/GitHub/FRDM-Quadcopter/FSFK_KL46Z/MQXLITE/kernel" -I"C:/Users/B48923/Documents/GitHub/FRDM-Quadcopter/FSFK_KL46Z/MQXLITE/psp/cortex_m" -I"C:/Users/B48923/Documents/GitHub/FRDM-Quadcopter/FSFK_KL46Z/MQXLITE/psp/cortex_m/core/M0" -I"C:/Users/B48923/Documents/GitHub/FRDM-Quadcopter/FSFK_KL46Z/MQXLITE/psp/cortex_m/compiler/cwgcc" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" -c -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

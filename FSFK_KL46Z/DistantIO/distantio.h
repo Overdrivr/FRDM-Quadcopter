@@ -10,7 +10,8 @@
 
 #include "mqx_tasks.h"
 
-#define FRAME_SIZE 8
+#define PAYLOAD_SIZE 14
+#define D_SIZE 8
 #define VARIABLES_AMOUNT 32
 
 typedef enum dio_type dio_type;

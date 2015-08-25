@@ -34,21 +34,40 @@
 #include "UART.h"
 #include "include_all.h"
 
+#include "../SerialProtocol/functions.h"
+#include "../SerialProtocol/protocol.h"
+#include "../DistantIO/distantio.h"
+#include "RNG1.h"
+#include "string.h"
+
+static UART_Desc deviceData;
+void rx_callback(uint8_t* data, uint16_t datasize);
+
+uint32_t counter;
+
 void UserStartup(void)
 {
-	// The following UART functions initialize Bluetooth communications used by the
-	// Freescale Sensor Fusion Toolbox.  If the developer is not using the toolbox,
-	// these can be removed.
-	//
-	// initialize BlueRadios Bluetooth module
-	BlueRadios_Init(UART_DeviceData);
+	// Init serial
+	RNG1_Init();
 
-	// put code here to be executed at the end of the RTOS startup sequence.
-	//
-	// PUT YOUR CODE HERE
-	//
+	deviceData.handle = UART_Init(&deviceData);
+	deviceData.rxChar = '\0';
+	deviceData.rxCallback = RNG1_Put;
 
-	return;
+	UART_ReceiveBlock(deviceData.handle, (LDD_TData *)&(deviceData.rxChar), sizeof(deviceData.rxChar));
+
+	// Init bluetooth
+	uint8_t data[30];
+	strcpy((char *)data, "ATSRM,2,0\r");
+	uint16_t ilen = strlen((char *)data);
+	sendBytes(deviceData.handle,data,ilen);
+
+	// Init serial protocol and distant io
+	init_protocol();
+	init_distantio(deviceData.handle);
+
+	// Register variables
+	register_var((void*)&counter, sizeof(counter), dio_type_UINT32, FALSE, "COUNTER");
 }
 
 void UserHighFrequencyTaskInit(void)
@@ -84,40 +103,21 @@ void UserHighFrequencyTaskRun(void)
 
 void UserMediumFrequencyTaskRun(void)
 {
-	static int32 iThrottle = 0;
-
-	// this function is called after the Kalman filter loop at a rate of SENSORFS / OVERSAMPLE_RATIO Hz.
-	// with the default settings this is 200Hz/8=25Hz giving a smooth video quality display on the 
-	// PC and Android user interfaces.
-	// the UART (serial over USB and over Bluetooth) is limited to 115kbps which is more than adequate for
-	// the 31kbps needed at the default 25Hz output rate but insufficient for 100Hz or 200Hz output rates.
-	// since there is little point is providing output data faster than 25Hz video rates, this function
-	// throttles the packet rate to a maximum of MAXPACKETRATE=25Hz.
-
-	// check for any need to throttle the output rate
-#define MAXPACKETRATE 25
-#define RATERESOLUTION 1000
-	if (((int32)MAXPACKETRATE * (int32)OVERSAMPLE_RATIO) >= (int32)SENSORFS)
+	// Process RX data
+	if(RNG1_NofFreeElements() > 0)
 	{
-		// no UART bandwidth problem: transmit the packets over UART (USB and Bluetooth)
-		CreateAndSendBluetoothPacketsViaUART(UART_DeviceData);
-	}
-	else
-	{
-		// throttle back by fractional multiplier (OVERSAMPLE_RATIO * MAXPACKETRATE) / SENSORFS
-		// the increment applied to iThrottle is in the range 0 to (RATERESOLUTION - 1)
-		iThrottle += ((int32)OVERSAMPLE_RATIO * (int32) MAXPACKETRATE * (int32)RATERESOLUTION) / SENSORFS;
-		if (iThrottle >= RATERESOLUTION)
-		{			
-			// update the throttle counter and transmit the packets over UART (USB and Bluetooth)
-			iThrottle -= RATERESOLUTION;
-			CreateAndSendBluetoothPacketsViaUART(UART_DeviceData);
+		while (RNG1_NofElements()!=0)
+		{
+		  unsigned char ch;
+		  RNG1_Get(&ch);
+		  decode(ch,rx_callback);
 		}
 	}
+}
 
-	//
-	// PUT YOUR CODE HERE
-	//
-	
-	return;
+// Callback feeding delimited frames to distant IO
+void rx_callback(uint8_t* data, uint16_t datasize)
+{
+
+	distantio_decode(data,datasize);
 }

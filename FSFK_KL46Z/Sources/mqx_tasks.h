@@ -41,6 +41,7 @@
 #include "I2C.h"
 #include "TestPin_KF_Time.h"
 #include "TestPin_MagCal_Time.h"
+#include "RNG1.h"
 #include "FTM.h"
 #include "UART.h"
 #include "lwevent.h"

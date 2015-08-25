@@ -318,6 +318,10 @@ Module "UART"      (component Serial_LDD)
                 to check the end of data reception or method GetReceivedDataNum to check the state of receiving.
    - UART_GetSentDataNum -Returns the number of sent characters.
    - UART_GetReceivedDataNum -Returns the number of received characters in the receive buffer.
+   - UART_GetTxCompleteStatus -Returns whether the transmitter has transmitted all characters and there are no other characters 
+                in the transmitter's HW FIFO or the shift register. The status flag is accumulated, after calling this method 
+                the status is returned and cleared (set to "false" state). This method is available only if a peripheral 
+                supports this feature.
 
 Module "I2C"       (component I2C_LDD)
    - I2C_Init -Initializes the device. Allocates memory for the device data structure, allocates interrupt vectors and sets 
@@ -389,6 +393,13 @@ Module "TestPin_MagCal_Time" (component BitIO_LDD)
                 available only if the direction = _[output]_ or _[input/output]_.
    - TestPin_MagCal_Time_SetVal -Sets (to one) the output value. It is equivalent to the [PutVal(TRUE)]. This method is 
                 available only if the direction = _[output]_ or _[input/output]_.
+
+Module "RNG1"      (component RingBufferUInt8)
+   - RNG1_Put -Puts a new element into the buffer
+   - RNG1_Get -Removes an element from the buffer
+   - RNG1_NofElements -Returns the actual number of elements in the buffer.
+   - RNG1_NofFreeElements -Returns the actual number of free elements/space in the buffer.
+   - RNG1_Init -Initializes the data structure
 
 Module "Cpu"       (component MKL46Z256MC4)
 

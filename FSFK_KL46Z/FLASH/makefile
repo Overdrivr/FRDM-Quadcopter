@@ -9,12 +9,14 @@ RM := rm -rf
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include Sources/subdir.mk
+-include SerialProtocol/subdir.mk
 -include Project_Settings/Startup_Code/subdir.mk
 -include MQXLITE/psp/cortex_m/core/M0/subdir.mk
 -include MQXLITE/psp/cortex_m/subdir.mk
 -include MQXLITE/kernel/subdir.mk
 -include MQXLITE/config/subdir.mk
 -include Generated_Code/subdir.mk
+-include DistantIO/subdir.mk
 -include subdir.mk
 -include objects.mk
 
@@ -65,7 +67,7 @@ all: FSFK_KL46Z.elf secondary-outputs
 FSFK_KL46Z.elf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross ARM C++ Linker'
-	arm-none-eabi-g++ -mcpu=cortex-m0plus -mthumb -O3 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections  -g -T "C:/Users/B48923/Documents/KDSWorkspace/FSFK_KL46Z/Project_Settings/Linker_Files/ProcessorExpert.ld" -Xlinker --gc-sections -L"C:/Users/B48923/Documents/KDSWorkspace/FSFK_KL46Z/Project_Settings/Linker_Files" -Wl,-Map,"FSFK_KL46Z.map" --specs=nano.specs -o "FSFK_KL46Z.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-g++ -mcpu=cortex-m0plus -mthumb -O3 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -Wall  -g -T "C:/Users/B48923/Documents/GitHub/FRDM-Quadcopter/FSFK_KL46Z/Project_Settings/Linker_Files/ProcessorExpert.ld" -Xlinker --gc-sections -L"C:/Users/B48923/Documents/GitHub/FRDM-Quadcopter/FSFK_KL46Z/Project_Settings/Linker_Files" -Wl,-Map,"FSFK_KL46Z.map" --specs=nano.specs -o "FSFK_KL46Z.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

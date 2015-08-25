@@ -34,6 +34,8 @@
 
 /* User includes (#include below this line is not maintained by Processor Expert) */
 #include "include_all.h"
+#include "../SerialProtocol/functions.h"
+#include "RNG1.h"
 
 
 // called on NMI
@@ -103,135 +105,7 @@ void UART_OnTxComplete(LDD_TUserData *UserDataPtr)
 
 void UART_OnBlockReceived(LDD_TUserData *UserDataPtr)
 {
-	int32 isum;			// 32 bit command identifier
-	int16 nbytes;		// number of bytes received
-	int16 i, j;			// loop counters
-
-	// this function is called when one or more characters have arrived in the UART's receive buffer
-	// incoming characters are placed in a delay line and processed whenever a valid command is received.
-	// this provides resilience against loss of incoming characters.
-	// note also that although this callback is theoretically called whenever a single byte is received, 
-	// in practice there may be bursts of more than one byte in the receive buffer.
-	// all received bytes are processed before this callback is executed.
-
-	// determine how many bytes are available in the UART receive buffer
-	nbytes = UART_GetReceivedDataNum(UART_DeviceData);
-
-	// parse all received bytes in sUARTInputBuf into the iCommand delay line
-	for (i = 0; i < nbytes; i++)
-	{
-		// shuffle the iCommand delay line and add the new command byte
-		for (j = 0; j < 3; j++)
-			iCommand[j] = iCommand[j + 1];
-		iCommand[3] = sUARTInputBuf[i];
-		
-		// check if we have a valid command yet
-		isum = ((((((int32)iCommand[0] << 8) + iCommand[1]) << 8) + iCommand[2]) << 8) + iCommand[3];
-		switch (isum)
-		{
-		// "VG+ " = enable angular velocity packet transmission
-		case ((((('V' << 8) + 'G') << 8) + '+') << 8) + ' ':
-			globals.AngularVelocityPacketOn = true;
-			iCommand[3] = '~';
-		break;
-		// "VG- " = disable angular velocity packet transmission
-		case ((((('V' << 8) + 'G') << 8) + '-') << 8) + ' ':
-			globals.AngularVelocityPacketOn = false; 
-			iCommand[3] = '~';
-		break;
-		
-		// "DB+ " = enable debug packet transmission
-		case ((((('D' << 8) + 'B') << 8) + '+') << 8) + ' ':
-			globals.DebugPacketOn = true;
-			iCommand[3] = '~';
-		break;
-		// "DB- " = disable debug packet transmission
-		case ((((('D' << 8) + 'B') << 8) + '-') << 8) + ' ':
-			globals.DebugPacketOn = false; 
-			iCommand[3] = '~';
-		break;
-		
-		// "Q3  " = transmit 3-axis accelerometer quaternion in standard packet
-		case ((((('Q' << 8) + '3') << 8) + ' ') << 8) + ' ':
-	#if defined COMPUTE_3DOF_G_BASIC
-			globals.QuaternionPacketType = Q3;
-			iCommand[3] = '~';
-	#endif
-		break;
-		// "Q3M " = transmit 3-axis magnetometer quaternion in standard packet
-		case ((((('Q' << 8) + '3') << 8) + 'M') << 8) + ' ':
-	#if defined COMPUTE_3DOF_B_BASIC
-			globals.QuaternionPacketType = Q3M;
-			iCommand[3] = '~';
-	#endif
-		break;
-		// "Q3G " = transmit 3-axis gyro quaternion in standard packet
-		case ((((('Q' << 8) + '3') << 8) + 'G') << 8) + ' ':
-	#if defined COMPUTE_3DOF_Y_BASIC
-			globals.QuaternionPacketType = Q3G; 
-			iCommand[3] = '~';
-	#endif
-		break;
-		// "Q6MA" = transmit 6-axis mag/accel quaternion in standard packet
-		case ((((('Q' << 8) + '6') << 8) + 'M') << 8) + 'A':
-	#if defined COMPUTE_6DOF_GB_BASIC
-			globals.QuaternionPacketType = Q6MA;
-			iCommand[3] = '~';
-	#endif
-		break;	
-		// "Q6AG" = transmit 6-axis accel/gyro quaternion in standard packet
-		case ((((('Q' << 8) + '6') << 8) + 'A') << 8) + 'G':
-	#if defined COMPUTE_6DOF_GY_KALMAN
-			globals.QuaternionPacketType = Q6AG;
-			iCommand[3] = '~';
-	#endif
-		break;
-		// "Q9  " = transmit 9-axis quaternion in standard packet (default)
-		case ((((('Q' << 8) + '9') << 8) + ' ') << 8) + ' ':
-	#if defined COMPUTE_9DOF_GBY_KALMAN
-			globals.QuaternionPacketType = Q9;
-			iCommand[3] = '~';
-	#endif
-		break;
-		
-		// "RPC+" = Roll/Pitch/Compass on
-		case ((((('R' << 8) + 'P') << 8) + 'C') << 8) + '+':
-			globals.RPCPacketOn = true; 
-			iCommand[3] = '~';
-		break;
-		// "RPC-" = Roll/Pitch/Compass off
-		case ((((('R' << 8) + 'P') << 8) + 'C') << 8) + '-':
-			globals.RPCPacketOn = false; 
-			iCommand[3] = '~';
-		break;
-		
-		// "ALT+" = Altitude packet on
-		case ((((('A' << 8) + 'L') << 8) + 'T') << 8) + '+':
-			globals.AltPacketOn = true; 
-			iCommand[3] = '~';
-		break;
-		// "ALT-" = Altitude packet off
-		case ((((('A' << 8) + 'L') << 8) + 'T') << 8) + '-':
-			globals.AltPacketOn = false; 
-			iCommand[3] = '~';
-		break;
-
-		// "RST " = Soft reset
-		case ((((('R' << 8) + 'S') << 8) + 'T') << 8) + ' ':	
-			Fusion_Init();
-			mqxglobals.FTMTimestamp = 0;
-			iCommand[3] = '~';
-		break;
-
-		default:
-			// no action
-			break;
-		}	
-	} // end of loop over received characters
-
-	// generate the next callback event to this function when the next character arrives
-	// this function is non-blocking
-	UART_ReceiveBlock(UART_DeviceData, sUARTInputBuf, 1);
-
-	return;
+	UART_Desc *ptr = (UART_Desc*)UserDataPtr;
+	RNG1_Put(ptr->rxChar);
+	UART_ReceiveBlock(ptr->handle, (LDD_TData *)&(ptr->rxChar), sizeof(ptr->rxChar));
 }

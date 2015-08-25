@@ -49,17 +49,21 @@
       <Path>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\</Path>
     </IncludePaths>
     <SourceCodePaths>
+      <Path>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\DistantIO\</Path>
       <Path>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\</Path>
       <Path>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\MQXLITE\config\</Path>
       <Path>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\MQXLITE\kernel\</Path>
       <Path>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\MQXLITE\psp\cortex_m\</Path>
       <Path>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Project_Settings\Startup_Code\</Path>
+      <Path>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\SerialProtocol\</Path>
       <Path>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Sources\</Path>
       <Path>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\MQXLITE\psp\cortex_m\core\M0\</Path>
     </SourceCodePaths>
   </PATHS>
   <FILES>
     <GeneratedCs>
+      <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\DistantIO\crc.c</PathName>
+      <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\DistantIO\distantio.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\Cpu.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\FTM.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\I2C.c</PathName>
@@ -68,6 +72,7 @@
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\LED_RED.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\MQX1.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\PE_LDD.c</PathName>
+      <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\RNG1.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\SystemTimer1.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\TestPin_KF_Time.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\TestPin_MagCal_Time.c</PathName>
@@ -110,6 +115,8 @@
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\MQXLITE\psp\cortex_m\stack_de.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\MQXLITE\psp\cortex_m\stack_st.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Project_Settings\Startup_Code\startup.c</PathName>
+      <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\SerialProtocol\functions.c</PathName>
+      <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\SerialProtocol\protocol.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Sources\Events.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Sources\approximations.c</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Sources\drivers.c</PathName>
@@ -123,6 +130,8 @@
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Sources\user_tasks.c</PathName>
     </GeneratedCs>
     <GeneratedHs>
+      <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\DistantIO\crc.h</PathName>
+      <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\DistantIO\distantio.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\Cpu.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\FTM.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\I2C.h</PathName>
@@ -135,6 +144,7 @@
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\PE_Error.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\PE_LDD.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\PE_Types.h</PathName>
+      <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\RNG1.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\SystemTimer1.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\TestPin_KF_Time.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Generated_Code\TestPin_MagCal_Time.h</PathName>
@@ -178,6 +188,8 @@
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\MQXLITE\psp\cortex_m\psp_ticks.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\MQXLITE\psp\cortex_m\psplite.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\MQXLITE\psp\cortex_m\psptypes.h</PathName>
+      <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\SerialProtocol\functions.h</PathName>
+      <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\SerialProtocol\protocol.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Sources\Events.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Sources\approximations.h</PathName>
       <PathName>C:\Users\B48923\Documents\GitHub\FRDM-Quadcopter\FSFK_KL46Z\Sources\build.h</PathName>

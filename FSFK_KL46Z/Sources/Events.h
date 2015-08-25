@@ -40,6 +40,7 @@
 #include "I2C.h"
 #include "TestPin_KF_Time.h"
 #include "TestPin_MagCal_Time.h"
+#include "RNG1.h"
 
 // function prototypes for Event.c
 void Cpu_OnNMIINT(void);

@@ -29,10 +29,12 @@ S_UPPER_DEPS :=
 # Every subdirectory with source files must be described here
 SUBDIRS := \
 Sources \
+SerialProtocol \
 Project_Settings/Startup_Code \
 MQXLITE/psp/cortex_m \
 MQXLITE/psp/cortex_m/core/M0 \
 MQXLITE/kernel \
 MQXLITE/config \
 Generated_Code \
+DistantIO \
 

@@ -81,7 +81,7 @@ void send_descriptor(uint16_t index)
 	if(index > Log.amount)
 		return;
 
-	static uint8_t buffer[FRAME_SIZE + 5];
+	static uint8_t buffer[PAYLOAD_SIZE];
 	uint8_t *temp_ptr;
 	uint8_t type;
 
@@ -107,16 +107,20 @@ void send_descriptor(uint16_t index)
 	for(uint16_t k = 0 ; k < 8 ; k++)
 	{
 		if(k < strlen(Log.variables[i].name))
-			buffer[i++] = Log.variables[i].name[k];
+		{
+			buffer[i] = Log.variables[i].name[k];
+			i++;
+		}
 		else
 			buffer[i++] = 0;
 	}
 
 	// Compute crc
-	uint8_t crc_value = crc8(buffer,i);
+	uint16_t crc_value = crc16(buffer,i);
 
 	// Write crc into buffer's last byte
-	buffer[i++] = crc_value;
+	buffer[i++] = crc_value & 0xFF;
+	buffer[i++] = (crc_value >> 8) & 0xFF;
 
 	// Send frame
 	sendBytes(Log.handle,buffer,i);
@@ -125,13 +129,15 @@ void send_descriptor(uint16_t index)
 void distantio_decode(uint8* data,uint16_t datasize)
 {
 	// First check data size
-	// 1 byte cmd + 2 bytes id + 1 byte type + FRAME_SIZE + 1 byte CRC
-	if(datasize != FRAME_SIZE + 5)
+	// 1 byte cmd + 2 bytes id + 1 byte type + FRAME_SIZE + 2 byte CRC
+	if(datasize != PAYLOAD_SIZE)
 		return;
 
 	// Second, check CRC
-	uint8_t crc_value = crc8(data,FRAME_SIZE);
-	if(crc_value != data[FRAME_SIZE + 4])
+	uint16_t crc_value = crc16(data,PAYLOAD_SIZE-2);
+	uint16_t crc_rx = ((uint16_t)data[PAYLOAD_SIZE-2] << 8) | data[PAYLOAD_SIZE-1];
+
+	if(crc_value != crc_rx)
 		return;
 	
 	// Process frame
@@ -243,7 +249,7 @@ void send_variable(uint16_t index)
 	if(index > Log.amount)
 		return;
 
-	static uint8_t buffer[FRAME_SIZE + 5];
+	static uint8_t buffer[PAYLOAD_SIZE];
 
 	// Responding to cmd 0x00
 	buffer[0] = 0x00;
@@ -260,7 +266,7 @@ void send_variable(uint16_t index)
 	uint16_t i = 4;
 
 	// Write data
-	for(uint16_t k = 0 ; k < FRAME_SIZE ; k++)
+	for(uint16_t k = 0 ; k < D_SIZE ; k++)
 	{
 		// Fill buffer with data
 		if(k < Log.variables[index].size)
@@ -276,10 +282,11 @@ void send_variable(uint16_t index)
 	}
 	
 	// Compute crc
-	uint8_t crc_value = crc8(buffer,i);
+	uint16_t crc_value = crc16(buffer,i);
 
 	// Write crc into buffer's last byte
-	buffer[i++] = crc_value;
+	buffer[i++] = crc_value & 0xFF;
+	buffer[i++] = (crc_value >> 8) & 0xFF;
 
 	// Send frame
 	sendBytes(Log.handle,buffer,i);
