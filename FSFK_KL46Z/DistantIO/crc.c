@@ -5,7 +5,7 @@
  */
 
 #include "crc.h"
-
+/*
 static const unsigned char crc8_table[] = {
     0x00, 0x3e, 0x7c, 0x42, 0xf8, 0xc6, 0x84, 0xba, 0x95, 0xab, 0xe9, 0xd7,
     0x6d, 0x53, 0x11, 0x2f, 0x4f, 0x71, 0x33, 0x0d, 0xb7, 0x89, 0xcb, 0xf5,
@@ -45,7 +45,7 @@ unsigned crc8(unsigned char *data, uint16_t len)
     } while (data < end);
     return crc ^ 0xff;
 	return 0;
-}
+}*/
 
 /* this was used to generate the table and to test the table-version
 
@@ -73,3 +73,57 @@ unsigned crc8_slow(unsigned crc, unsigned char *data, size_t len)
     return crc ^ 0xff;
 }
 */
+/*
+# From : https://en.wikipedia.org/wiki/Computation_of_cyclic_redundancy_checks
+
+# Most significant bit first (big-endian)
+# x^16+x^12+x^5+1 = (1) 0001 0000 0010 0001 = 0x1021
+
+def crc16(data):
+    rem  = 0
+    n = 16
+    # A popular variant complements rem here
+    for d in data:
+        rem  = rem ^ (d << (n-8))   # n = 16 in this example
+        for j in range(1,8):
+            # Assuming 8 bits per byte
+            if rem & 0x8000:
+            # if leftmost (most significant) bit is set
+                rem  = (rem << 1) ^ 0x1021
+            else:
+                rem  = rem << 1
+        rem  = rem & 0xffff      # Trim remainder to 16 bits
+    # A popular variant complements rem here
+    return rem
+*/
+// Most significant bit first (big-endian)
+// x^16+x^12+x^5+1 = (1) 0001 0000 0010 0001 = 0x1021
+
+uint16_t crc16(uint8_t* data, uint16_t len)
+{
+	uint16_t rem  = 0;
+	uint16_t n = 16;
+	// A popular variant complements rem here
+	for(uint16_t i = 0 ; i < len ; i++)
+	{
+		rem  = rem ^ (data[i] << (n-8));   // n = 16 in this example
+
+		for(uint16_t j = 1 ; j < 8 ; j++)  // Assuming 8 bits per byte
+		{
+
+			if(rem & 0x8000)
+			{
+				// if leftmost (most significant) bit is set
+				rem  = (rem << 1) ^ 0x1021;
+			}
+			else
+			{
+				rem  = rem << 1;
+			}
+		 rem  &= 0xffff;      // Trim remainder to 16 bits
+		}
+	}
+ // A popular variant complements rem here
+  return rem;
+ }
+

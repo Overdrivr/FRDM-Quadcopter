@@ -3,6 +3,6 @@
 
 #include "mqx_tasks.h"
 
-unsigned crc8(unsigned char *data, uint16_t len);
-
+//unsigned crc8(unsigned char *data, uint16_t len);
+uint16_t crc16(uint8_t *data, uint16_t len);
 #endif
