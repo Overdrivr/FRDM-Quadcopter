@@ -11,7 +11,7 @@
 #include "mqx_tasks.h"
 
 #define PAYLOAD_SIZE 14
-#define D_SIZE 8
+#define DATA_SIZE 8
 #define VARIABLES_AMOUNT 32
 
 typedef enum dio_type dio_type;
@@ -57,5 +57,6 @@ void distantio_decode(uint8* data,uint16_t datasize);
 
 // To call often
 void send_variables();
+void send_alive();
 
 #endif /* DISTANTIO_H_ */

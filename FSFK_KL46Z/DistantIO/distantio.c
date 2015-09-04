@@ -10,14 +10,16 @@
 #include "crc.h"
 #include "string.h"
 #include "../SerialProtocol/functions.h"
+#include "../SerialProtocol/protocol.h"
 
 log Log;
 uint32_t tmp;
 uint8_t current_group_id;
 
 void send_variable(uint16_t index);
-void send_descriptor(uint16_t index);
 uint16_t get_size(dio_type type);
+void send_data_callback(uint8_t* data, uint16_t size);
+void send_descriptor(uint16_t index);
 
 /**
  * Inits the distant io framework
@@ -78,7 +80,7 @@ void stop_group()
 
 void send_descriptor(uint16_t index)
 {
-	if(index > Log.amount)
+	if(index >= Log.amount)
 		return;
 
 	static uint8_t buffer[PAYLOAD_SIZE];
@@ -122,8 +124,8 @@ void send_descriptor(uint16_t index)
 	buffer[i++] = crc_value & 0xFF;
 	buffer[i++] = (crc_value >> 8) & 0xFF;
 
-	// Send frame
-	sendBytes(Log.handle,buffer,i);
+	// Encode frame
+	encode(buffer,i,send_data_callback);
 }
 
 void distantio_decode(uint8* data,uint16_t datasize)
@@ -266,7 +268,7 @@ void send_variable(uint16_t index)
 	uint16_t i = 4;
 
 	// Write data
-	for(uint16_t k = 0 ; k < D_SIZE ; k++)
+	for(uint16_t k = 0 ; k < DATA_SIZE ; k++)
 	{
 		// Fill buffer with data
 		if(k < Log.variables[index].size)
@@ -292,6 +294,22 @@ void send_variable(uint16_t index)
 	sendBytes(Log.handle,buffer,i);
 }
 
+void send_alive()
+{
+	static uint8_t buffer[PAYLOAD_SIZE] = {0x03,0x00,0x00,0x00,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x00,0x00};
+
+
+	// Compute crc
+	uint16_t crc_value = crc16(buffer,PAYLOAD_SIZE - 2);
+
+	// Write crc into buffer's last byte
+	buffer[PAYLOAD_SIZE - 2] = crc_value & 0xFF;
+	buffer[PAYLOAD_SIZE - 1] = (crc_value >> 8) & 0xFF;
+
+	// Send frame to encoding
+	encode(buffer,PAYLOAD_SIZE,send_data_callback);
+}
+
 
 /**
  * Returns the size in byte for each variable
@@ -315,4 +333,10 @@ uint16_t get_size(dio_type type)
 		default:
 			return 1;
 	}
+}
+
+void send_data_callback(uint8_t* data, uint16_t size)
+{
+	// Send encoded frame
+	sendBytes(Log.handle,data,size);
 }
