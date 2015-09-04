@@ -10,11 +10,11 @@
 
 void sendByte(LDD_TDeviceData *handle, uint8_t* ch)
 {
-	UART_SendBlock(handle, ch, sizeof(*ch));
+	UART_SendBlock(handle, ch, 1);
 	while(! UART_GetTxCompleteStatus(handle));
 }
 
-void sendBytes(LDD_TDeviceData *handle, unsigned char* data, uint16_t size)
+void sendBytes(LDD_TDeviceData *handle, uint8_t* data, uint16_t size)
 {
 	UART_SendBlock(handle, data, size);
 	while(! UART_GetTxCompleteStatus(handle));
