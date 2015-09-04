@@ -43,7 +43,7 @@
 static UART_Desc deviceData;
 void rx_callback(uint8_t* data, uint16_t datasize);
 
-uint32_t counter;
+static uint32_t counter;
 
 void UserStartup(void)
 {
@@ -103,6 +103,18 @@ void UserHighFrequencyTaskRun(void)
 
 void UserMediumFrequencyTaskRun(void)
 {
+	static uint32_t alive_counter = 0;
+
+	// Send alive signal
+	if(alive_counter >= 20)
+	{
+		send_alive();
+		alive_counter = 0;
+	}
+	else
+		alive_counter++;
+
+
 	// Process RX data
 	if(RNG1_NofFreeElements() > 0)
 	{
