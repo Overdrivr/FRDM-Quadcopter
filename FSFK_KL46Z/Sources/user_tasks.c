@@ -44,6 +44,7 @@ static UART_Desc deviceData;
 void rx_callback(uint8_t* data, uint16_t datasize);
 
 static uint32_t counter;
+static float counter_float;
 
 void UserStartup(void)
 {
@@ -54,20 +55,17 @@ void UserStartup(void)
 	deviceData.rxChar = '\0';
 	deviceData.rxCallback = RNG1_Put;
 
+	// Configure receive function
 	UART_ReceiveBlock(deviceData.handle, (LDD_TData *)&(deviceData.rxChar), sizeof(deviceData.rxChar));
-
-	// Init bluetooth
-	uint8_t data[30];
-	strcpy((char *)data, "ATSRM,2,0\r");
-	uint16_t ilen = strlen((char *)data);
-	sendBytes(deviceData.handle,data,ilen);
 
 	// Init serial protocol and distant io
 	init_protocol();
 	init_distantio(deviceData.handle);
+	counter = 0;
 
 	// Register variables
-	register_var((void*)&counter, sizeof(counter), dio_type_UINT32, FALSE, "COUNTER");
+	register_var((void*)&counter, sizeof(counter), dio_type_UINT32, TRUE, "COUNTER");
+	register_var((void*)&counter_float, sizeof(counter_float), dio_type_FLOAT, TRUE, "FLOAT");
 }
 
 void UserHighFrequencyTaskInit(void)
@@ -104,6 +102,10 @@ void UserHighFrequencyTaskRun(void)
 void UserMediumFrequencyTaskRun(void)
 {
 	static uint32_t alive_counter = 0;
+	static uint32_t send_variables_counter = 0;
+
+	counter++;
+	counter_float += 0.3f;
 
 	// Send alive signal
 	if(alive_counter >= 20)
@@ -113,6 +115,15 @@ void UserMediumFrequencyTaskRun(void)
 	}
 	else
 		alive_counter++;
+
+	// Send variables
+	if(send_variables_counter >= 5)
+	{
+		send_variables();
+		send_variables_counter = 0;
+	}
+	else
+		send_variables_counter++;
 
 
 	// Process RX data
