@@ -12,6 +12,11 @@
 #include "../SerialProtocol/functions.h"
 #include "../SerialProtocol/protocol.h"
 
+/*
+ * WARNING : IMPLEMENTATION FOR LITTLE-ENDIAN PROCESSOR
+ * TODO : HANDLE BOTH
+ */
+
 log Log;
 uint32_t tmp;
 uint8_t current_group_id;
@@ -48,8 +53,6 @@ void init_distantio(LDD_TDeviceData *uart_device)
  */
 uint8_t register_var(void* ptr, uint16_t size, dio_type type, bool writeable, char* name)
 {
-	uint16_t octets = 0;
-
 	// Too many variables, aborting
 	if(Log.amount >= VARIABLES_AMOUNT)
 		return 1;
@@ -87,8 +90,8 @@ void send_descriptor(uint16_t index)
 	uint8_t *temp_ptr;
 	uint8_t type;
 
-	// Respond to send-descriptor 0x02
-	buffer[0] = 0x02;
+	// Respond returned-descriptor
+	buffer[0] = 0x00;
 
 	// Write id
 	temp_ptr = (uint8_t*)(&index);
@@ -108,9 +111,9 @@ void send_descriptor(uint16_t index)
 	uint16_t i = 4;
 	for(uint16_t k = 0 ; k < 8 ; k++)
 	{
-		if(k < strlen(Log.variables[i].name))
+		if(k < strlen(Log.variables[index].name))
 		{
-			buffer[i] = Log.variables[i].name[k];
+			buffer[i] = Log.variables[index].name[k];
 			i++;
 		}
 		else
@@ -121,8 +124,8 @@ void send_descriptor(uint16_t index)
 	uint16_t crc_value = crc16(buffer,i);
 
 	// Write crc into buffer's last byte
-	buffer[i++] = crc_value & 0xFF;
 	buffer[i++] = (crc_value >> 8) & 0xFF;
+	buffer[i++] = crc_value & 0xFF;
 
 	// Encode frame
 	encode(buffer,i,send_data_callback);
@@ -152,91 +155,59 @@ void distantio_decode(uint8* data,uint16_t datasize)
 	
 	// Third, identify data type
 	uint8_t type = data[3];
+	uint16_t amount = Log.amount;
 
 	switch(command)
 	{
+		// User requested descriptors
+		case 0x02:
+			for(uint16_t i = 0 ; i < Log.amount ; i++)
+				send_descriptor(i);
+			break;
+
+		// User provided value to write
+		case 0x04:
+			if(ID >= Log.amount)
+				return;
+
+			if(Log.variables[ID].writeable == FALSE)
+				return;
+
+			if(Log.variables[ID].type != type)
+				return;
+
+			uint16_t start_address = 4 + DATA_SIZE - 1;
+
+			// Copy contents directly into variable
+			for(uint16_t i = 0 ; i < Log.variables[ID].size ; i++)
+			{
+				// Packet is big-endian, convert to little-endian
+				uint8_t offset = start_address - i;
+				*(Log.variables[ID].ptr + i) = *(data + offset);
+			}
+			break;
+
 		// User requested variable read
-		case 0:
+		case 0x05:
 			if(ID >= Log.amount)
 				return;
 
 			Log.variables[ID].send = 1;
 			break;
 
-		// User provided value to write
-		case 1:
-			if(ID >= Log.amount)
-				return;
-
-			if(!Log.variables[ID].writeable)
-				return;
-
-			if(Log.variables[ID].type != type)
-				return;
-
-			// Write 8 byte data
-			// Write 4 byte data
-			// Write 2 byte data
-			// Write 1 byte data
-			/*
-			bytes[0] = InputBuffer[i++];
-			bytes[1] = InputBuffer[i++];
-			bytes[2] = InputBuffer[i++];
-			bytes[3] = InputBuffer[i++];
-
-			if(Log.variables[id].type == 0x00)
-			{
-				to_float = (float *)(&bytes[0]);
-
-				ptr = (void *)(Log.variables[id].ptr);
-				tmp_float = (float *)(ptr);
-
-				*tmp_float = *to_float;
-			}
-			else if(Log.variables[id].type == 0x06)
-			{
-				//TODO : Use void ptr
-				to_int = (int32_t*)(&bytes[0]);
-
-				ptr = (void *)(Log.variables[id].ptr);
-				tmp_uint32 = (uint32_t*)(ptr);
-
-				*tmp_uint32 = *to_int;
-			}*/
-			break;
-		
-		// User requested all descriptors
-		case 2:
-			for(uint16_t i = 0 ; i < Log.amount ; i++)
-			{
-				send_descriptor(i);
-			}
-			break;
-
 		// User requested stop variable read
-		case 3:
+		case 0x06:
 			if(ID >= Log.amount)
 				return;
 			Log.variables[ID].send = 0;
 			break;
 		
-		// User requested stop all variable read
-		case 4:
-			for(uint16_t i = 0 ; i < Log.amount ; i++)
-			{
-				Log.variables[i].send = 0;
-			}
-			break;
 	}
 }
 
 void send_variables()
 {
-	uint16_t i;
-	uint16_t interval = 1;
-
-	//Send variables
-	for(i = 0 ; i < Log.amount ; i++)
+	for(uint16_t i = 0 ; i < Log.amount ; i++)
 	{
 		if(Log.variables[i].send == 0)
 			continue;
@@ -248,13 +219,13 @@ void send_variables()
 
 void send_variable(uint16_t index)
 {
-	if(index > Log.amount)
+	if(index >= Log.amount)
 		return;
 
 	static uint8_t buffer[PAYLOAD_SIZE];
 
-	// Responding to cmd 0x00
-	buffer[0] = 0x00;
+	// Response code 0x01
+	buffer[0] = 0x01;
 	
 	// Write variable ID
 	uint8_t* temp_ptr = (uint8_t*)(&index);
@@ -264,16 +235,19 @@ void send_variable(uint16_t index)
 	
 	// Write variable type
 	buffer[3] = Log.variables[index].type;
+	//TODO writeable
 
 	uint16_t i = 4;
 
 	// Write data
 	for(uint16_t k = 0 ; k < DATA_SIZE ; k++)
 	{
+		uint16_t off = DATA_SIZE - 1 - k;
+
 		// Fill buffer with data
-		if(k < Log.variables[index].size)
+		if(off < Log.variables[index].size)
 		{
-			temp_ptr = Log.variables[index].ptr + k;
+			temp_ptr = Log.variables[index].ptr + off ;
 			buffer[i++] = *temp_ptr;
 		}
 		// Fill remaining bits with 0
@@ -287,11 +261,11 @@ void send_variable(uint16_t index)
 	uint16_t crc_value = crc16(buffer,i);
 
 	// Write crc into buffer's last byte
-	buffer[i++] = crc_value & 0xFF;
 	buffer[i++] = (crc_value >> 8) & 0xFF;
+	buffer[i++] = crc_value & 0xFF;
 
-	// Send frame
-	sendBytes(Log.handle,buffer,i);
+	// Encode frame
+	encode(buffer,i,send_data_callback);
 }
 
 void send_alive()
@@ -303,8 +277,8 @@ void send_alive()
 	uint16_t crc_value = crc16(buffer,PAYLOAD_SIZE - 2);
 
 	// Write crc into buffer's last byte
-	buffer[PAYLOAD_SIZE - 2] = crc_value & 0xFF;
-	buffer[PAYLOAD_SIZE - 1] = (crc_value >> 8) & 0xFF;
+	buffer[PAYLOAD_SIZE - 1] = crc_value & 0xFF;
+	buffer[PAYLOAD_SIZE - 2] = (crc_value >> 8) & 0xFF;
 
 	// Send frame to encoding
 	encode(buffer,PAYLOAD_SIZE,send_data_callback);
