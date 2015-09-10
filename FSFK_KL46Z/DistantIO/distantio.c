@@ -19,12 +19,12 @@
 
 log Log;
 uint32_t tmp;
-uint8_t current_group_id;
 
 void send_variable(uint16_t index);
 uint16_t get_size(dio_type type);
 void send_data_callback(uint8_t* data, uint16_t size);
 void send_descriptor(uint16_t index);
+void send_group_descriptor(uint16_t index);
 
 /**
  * Inits the distant io framework
@@ -42,9 +42,12 @@ void init_distantio(LDD_TDeviceData *uart_device)
 		Log.variables[i].id = i;
 		strcpy(Log.variables[i].name,default_name);
 		Log.variables[i].send = 0;
+		Log.variables[i].groupID = 0;
 	}
 	tmp=0;
-	current_group_id = 0;
+	Log.current_group_id = 0;
+	strcpy(Log.groups[0].name,"default");
+
 	Log.handle = uart_device;
 }
 
@@ -61,7 +64,7 @@ uint8_t register_var(void* ptr, uint16_t size, dio_type type, bool writeable, ch
 	Log.variables[Log.amount].size = get_size(type);
 	Log.variables[Log.amount].writeable = writeable;
 	Log.variables[Log.amount].type = type;
-	Log.variables[Log.amount].groupID = current_group_id;
+	Log.variables[Log.amount].groupID = Log.current_group_id;
 	strcpy(Log.variables[Log.amount].name,name);
 
 	Log.amount++;
@@ -71,14 +74,12 @@ uint8_t register_var(void* ptr, uint16_t size, dio_type type, bool writeable, ch
 
 void start_group(char* groupname)
 {
-
+	Log.current_group_id++;
+	strcpy(Log.groups[Log.current_group_id].name,groupname);
 }
-void stop_group()
-{
 
-}
 /**
- * Send descriptor
+ * Send var descriptor
  */
 
 void send_descriptor(uint16_t index)
@@ -87,16 +88,16 @@ void send_descriptor(uint16_t index)
 		return;
 
 	static uint8_t buffer[PAYLOAD_SIZE];
-	uint8_t *temp_ptr;
 	uint8_t type;
 
 	// Respond returned-descriptor
 	buffer[0] = 0x00;
 
 	// Write id
-	temp_ptr = (uint8_t*)(&index);
-	buffer[1] = *(temp_ptr    );
-	buffer[2] = *(temp_ptr + 1);
+	uint16_t ID = ((Log.variables[index].groupID & 0x003F) << 10) + (index & 0x3FF);
+	uint8_t * temp_ptr = (uint8_t*)(&ID);
+	buffer[1] = *(temp_ptr + 1);
+	buffer[2] = *(temp_ptr    );
 
 	// Write type & writeable
 
@@ -114,6 +115,49 @@ void send_descriptor(uint16_t index)
 		if(k < strlen(Log.variables[index].name))
 		{
 			buffer[i] = Log.variables[index].name[k];
+			i++;
+		}
+		else
+			buffer[i++] = 0;
+	}
+
+	// Compute crc
+	uint16_t crc_value = crc16(buffer,i);
+
+	// Write crc into buffer's last byte
+	buffer[i++] = (crc_value >> 8) & 0xFF;
+	buffer[i++] = crc_value & 0xFF;
+
+	// Encode frame
+	encode(buffer,i,send_data_callback);
+}
+
+void send_group_descriptor(uint16_t index)
+{
+	if(index > Log.current_group_id)
+		return;
+
+	static uint8_t buffer[PAYLOAD_SIZE];
+
+	// Respond returned-descriptor
+	buffer[0] = 0x00;
+
+	// Write id
+	uint16_t ID = (index & 0x3F) << 10;
+	uint8_t * temp_ptr = (uint8_t*)(&ID);
+	buffer[1] = *(temp_ptr + 1);
+	buffer[2] = *(temp_ptr);
+
+	// Write type
+	buffer[3] = 0x07;
+
+	//Write name
+	uint16_t i = 4;
+	for(uint16_t k = 0 ; k < 8 ; k++)
+	{
+		if(k < strlen(Log.groups[index].name))
+		{
+			buffer[i] = Log.groups[index].name[k];
 			i++;
 		}
 		else
@@ -149,20 +193,23 @@ void distantio_decode(uint8* data,uint16_t datasize)
 	// First, identify command
 	uint8_t command = data[0];
 	
-	// Second, identify ID
-	uint8_t a = data[2];
-	uint16_t ID = data[1] + (a << 8);
+	// Second, identify variable ID
+	uint16_t ID = data[2] + (data[1] << 8);
+	ID = (ID & 0x3FF);
 	
 	// Third, identify data type
 	uint8_t type = data[3];
-	uint16_t amount = Log.amount;
 
 	switch(command)
 	{
 		// User requested descriptors
 		case 0x02:
+			// Send variables
 			for(uint16_t i = 0 ; i < Log.amount ; i++)
 				send_descriptor(i);
+			// Send groups
+			for(uint16_t i = 0 ; i <= Log.current_group_id ; i++)
+				send_group_descriptor(i);
 			break;
 
 		// User provided value to write
@@ -216,7 +263,6 @@ void send_variables()
 	}
 }
 
-
 void send_variable(uint16_t index)
 {
 	if(index >= Log.amount)
@@ -228,10 +274,10 @@ void send_variable(uint16_t index)
 	buffer[0] = 0x01;
 	
 	// Write variable ID
-	uint8_t* temp_ptr = (uint8_t*)(&index);
-	
-	buffer[1] = *(temp_ptr  );
-	buffer[2] = *(temp_ptr+1);
+	uint16_t ID = ((Log.variables[index].groupID & 0x003F) << 10) + (index & 0x3FF);
+	uint8_t * temp_ptr = (uint8_t*)(&ID);
+	buffer[1] = *(temp_ptr);
+	buffer[2] = *(temp_ptr + 1);
 	
 	// Write variable type
 	buffer[3] = Log.variables[index].type;

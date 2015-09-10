@@ -12,7 +12,8 @@
 
 #define PAYLOAD_SIZE 14
 #define DATA_SIZE 8
-#define VARIABLES_AMOUNT 32
+#define VARIABLES_AMOUNT 256
+#define GROUPS_AMOUNT 128
 
 typedef enum dio_type dio_type;
 enum dio_type
@@ -39,11 +40,20 @@ struct variable
 	uint8_t groupID;
 };
 
+typedef struct group group;
+struct group
+{
+	char name[8];
+	uint8_t groupID;
+};
+
 typedef struct log log;
 struct log
 {
 	variable variables[VARIABLES_AMOUNT];
+	group groups[GROUPS_AMOUNT];
 	uint16_t amount;
+	uint8_t current_group_id;
 	LDD_TDeviceData *handle;
 };
 
@@ -51,7 +61,6 @@ void init_distantio(LDD_TDeviceData *uart_device);
 
 uint8_t register_var(void* ptr, uint16_t size, dio_type type, bool writeable, char* name);
 void start_group(char* groupname);
-void stop_group();
 
 void distantio_decode(uint8* data,uint16_t datasize);
 
