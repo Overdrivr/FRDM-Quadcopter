@@ -45,6 +45,7 @@ void rx_callback(uint8_t* data, uint16_t datasize);
 
 static uint32_t counter;
 static float counter_float;
+static uint8 counter_uint8;
 
 void UserStartup(void)
 {
@@ -65,7 +66,10 @@ void UserStartup(void)
 
 	// Register variables
 	register_var((void*)&counter, sizeof(counter), dio_type_UINT32, TRUE, "COUNTER");
+	start_group("TYPETEST");
 	register_var((void*)&counter_float, sizeof(counter_float), dio_type_FLOAT, TRUE, "FLOAT");
+	register_var((void*)&counter_uint8, sizeof(counter_uint8), dio_type_UINT8, FALSE, "UINT8");
+
 }
 
 void UserHighFrequencyTaskInit(void)
