@@ -276,8 +276,8 @@ void send_variable(uint16_t index)
 	// Write variable ID
 	uint16_t ID = ((Log.variables[index].groupID & 0x003F) << 10) + (index & 0x3FF);
 	uint8_t * temp_ptr = (uint8_t*)(&ID);
-	buffer[1] = *(temp_ptr);
-	buffer[2] = *(temp_ptr + 1);
+	buffer[1] = *(temp_ptr + 1);
+	buffer[2] = *(temp_ptr);
 	
 	// Write variable type
 	buffer[3] = Log.variables[index].type;
@@ -318,6 +318,12 @@ void send_alive()
 {
 	static uint8_t buffer[PAYLOAD_SIZE] = {0x03,0x00,0x00,0x00,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x00,0x00};
 
+	uint16_t index = 1;
+	uint16_t group = 0;
+	uint16_t ID = ((group & 0x003F) << 10) + (index & 0x3FF);
+	uint8_t * temp_ptr = (uint8_t*)(&ID);
+	buffer[1] = *(temp_ptr + 1);
+	buffer[2] = *(temp_ptr);
 
 	// Compute crc
 	uint16_t crc_value = crc16(buffer,PAYLOAD_SIZE - 2);
