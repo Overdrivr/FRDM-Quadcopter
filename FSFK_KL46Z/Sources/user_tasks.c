@@ -41,7 +41,9 @@
 #include "string.h"
 
 static UART_Desc deviceData;
-void rx_callback(uint8_t* data, uint16_t datasize);
+
+void on_protocol_decoded_frame(uint8_t* data, uint16_t datasize);
+void on_protocol_encoded_frame(uint8_t* data, uint16_t datasize);
 
 static uint32_t counter;
 static float counter_float;
@@ -60,8 +62,8 @@ void UserStartup(void)
 	UART_ReceiveBlock(deviceData.handle, (LDD_TData *)&(deviceData.rxChar), sizeof(deviceData.rxChar));
 
 	// Init serial protocol and distant io
-	init_protocol();
-	init_distantio(deviceData.handle);
+	init_protocol(on_protocol_encoded_frame,on_protocol_decoded_frame);
+	init_distantio();
 	counter = 0;
 
 	// Register variables
@@ -137,14 +139,20 @@ void UserMediumFrequencyTaskRun(void)
 		{
 		  unsigned char ch;
 		  RNG1_Get(&ch);
-		  decode(ch,rx_callback);
+		  decode(ch);
 		}
 	}
 }
 
-// Callback feeding delimited frames to distant IO
-void rx_callback(uint8_t* data, uint16_t datasize)
+void on_protocol_decoded_frame(uint8_t* data, uint16_t datasize)
 {
-
 	distantio_decode(data,datasize);
 }
+
+void on_protocol_encoded_frame(uint8_t* data, uint16_t datasize)
+{
+	sendBytes(deviceData.handle,data,datasize);
+}
+
+
+
