@@ -6,7 +6,6 @@
  */
 
 #include "protocol.h"
-#include "functions.h"
 
 enum state
 {
@@ -31,8 +30,11 @@ uint8_t SOF_;
 uint8_t EOF_;
 uint8_t ESC_;
 
+static void (*on_encoding_done)(uint8_t* data, uint16_t size);
+static void (*on_decoding_done)(uint8_t* data, uint16_t size);
 
-void init_protocol()
+
+void init_protocol(void (*encoding_done_callback)(uint8_t*,uint16_t),void (*decoding_done_callback)(uint8_t*,uint16_t))
 {
 	protocol_state = IDLE;
 	escape_state = NONE;
@@ -42,9 +44,12 @@ void init_protocol()
 	ESC_ = 0x7D;
 
 	decodingIndex = 0;
+	
+	on_encoding_done = encoding_done_callback;
+	on_decoding_done = decoding_done_callback;
 }
 
-void encode(uint8_t* framedata, uint16_t framesize, void (*callback)(uint8_t*,uint16_t))
+void encode(uint8_t* framedata, uint16_t framesize)
 {
 	// If frame size is superior than maximum allowed, abort
 	if(framesize > ENCODING_BUFFER_SIZE)
@@ -75,10 +80,10 @@ void encode(uint8_t* framedata, uint16_t framesize, void (*callback)(uint8_t*,ui
 	encodingBuffer[index++] = EOF_;
 
 	// Operation is done, call function callback
-	callback(encodingBuffer,index);
+	on_encoding_done(encodingBuffer,index);
 }
 
-void decode(uint8_t received_byte, void (*callback)(uint8_t*,uint16_t))
+void decode(uint8_t received_byte)
 {
 	static uint8_t decodingBuffer[DECODING_BUFFER_SIZE];
 
@@ -108,7 +113,7 @@ void decode(uint8_t received_byte, void (*callback)(uint8_t*,uint16_t))
 			{
 				protocol_state = IDLE;
 				// Call the function callback for end of frame
-				callback(decodingBuffer,decodingIndex);
+				on_decoding_done(decodingBuffer,decodingIndex);
 			}
 			else if(received_byte == ESC_)
 			{
