@@ -6,10 +6,8 @@
  */
 
 #include "distantio.h"
-#include "Cpu.h"
 #include "crc.h"
 #include "string.h"
-#include "../SerialProtocol/functions.h"
 #include "../SerialProtocol/protocol.h"
 
 /*
@@ -17,19 +15,18 @@
  * TODO : HANDLE BOTH
  */
 
-log Log;
+static log Log;
 uint32_t tmp;
 
 void send_variable(uint16_t index);
 uint16_t get_size(dio_type type);
-void send_data_callback(uint8_t* data, uint16_t size);
 void send_descriptor(uint16_t index);
 void send_group_descriptor(uint16_t index);
 
 /**
  * Inits the distant io framework
  */
-void init_distantio(LDD_TDeviceData *uart_device)
+void init_distantio()
 {
 	uint16_t i;
 	char default_name[] = {"undef.  "};
@@ -47,14 +44,12 @@ void init_distantio(LDD_TDeviceData *uart_device)
 	tmp=0;
 	Log.current_group_id = 0;
 	strcpy(Log.groups[0].name,"default");
-
-	Log.handle = uart_device;
 }
 
 /**
  * Register a variable exchanged with the computer
  */
-uint8_t register_var(void* ptr, uint16_t size, dio_type type, bool writeable, char* name)
+uint8_t register_var(void* ptr, uint16_t size, dio_type type, uint8_t writeable, char* name)
 {
 	// Too many variables, aborting
 	if(Log.amount >= VARIABLES_AMOUNT)
@@ -129,7 +124,7 @@ void send_descriptor(uint16_t index)
 	buffer[i++] = crc_value & 0xFF;
 
 	// Encode frame
-	encode(buffer,i,send_data_callback);
+	encode(buffer,i);
 }
 
 void send_group_descriptor(uint16_t index)
@@ -172,10 +167,10 @@ void send_group_descriptor(uint16_t index)
 	buffer[i++] = crc_value & 0xFF;
 
 	// Encode frame
-	encode(buffer,i,send_data_callback);
+	encode(buffer,i);
 }
 
-void distantio_decode(uint8* data,uint16_t datasize)
+void distantio_decode(uint8_t* data,uint16_t datasize)
 {
 	// First check data size
 	// 1 byte cmd + 2 bytes id + 1 byte type + FRAME_SIZE + 2 byte CRC
@@ -217,7 +212,7 @@ void distantio_decode(uint8* data,uint16_t datasize)
 			if(ID >= Log.amount)
 				return;
 
-			if(Log.variables[ID].writeable == FALSE)
+			if(Log.variables[ID].writeable == 0x00)
 				return;
 
 			if(Log.variables[ID].type != type)
@@ -311,19 +306,19 @@ void send_variable(uint16_t index)
 	buffer[i++] = crc_value & 0xFF;
 
 	// Encode frame
-	encode(buffer,i,send_data_callback);
+	encode(buffer,i);
 }
 
 void send_alive()
 {
-	static uint8_t buffer[PAYLOAD_SIZE] = {0x03,0x00,0x00,0x00,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x00,0x00};
-
+	static uint8_t buffer[PAYLOAD_SIZE] = {0x03,0x00,0x10,0x00,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x00,0x00};
+	
 	uint16_t index = 1;
 	uint16_t group = 0;
 	uint16_t ID = ((group & 0x003F) << 10) + (index & 0x3FF);
 	uint8_t * temp_ptr = (uint8_t*)(&ID);
 	buffer[1] = *(temp_ptr + 1);
-	buffer[2] = *(temp_ptr);
+	buffer[2] = *(temp_ptr    );
 
 	// Compute crc
 	uint16_t crc_value = crc16(buffer,PAYLOAD_SIZE - 2);
@@ -333,7 +328,7 @@ void send_alive()
 	buffer[PAYLOAD_SIZE - 2] = (crc_value >> 8) & 0xFF;
 
 	// Send frame to encoding
-	encode(buffer,PAYLOAD_SIZE,send_data_callback);
+	encode(buffer,PAYLOAD_SIZE);
 }
 
 
@@ -359,10 +354,4 @@ uint16_t get_size(dio_type type)
 		default:
 			return 1;
 	}
-}
-
-void send_data_callback(uint8_t* data, uint16_t size)
-{
-	// Send encoded frame
-	sendBytes(Log.handle,data,size);
 }
