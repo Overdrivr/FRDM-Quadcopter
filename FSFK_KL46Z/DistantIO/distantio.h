@@ -8,7 +8,7 @@
 #ifndef DISTANTIO_H_
 #define DISTANTIO_H_
 
-#include "mqx_tasks.h"
+#include <stdint.h>
 
 #define PAYLOAD_SIZE 14
 #define DATA_SIZE 8
@@ -32,7 +32,7 @@ struct variable
 {
 	uint8_t* ptr;
 	uint16_t size;
-	bool writeable;
+	uint8_t writeable;
 	uint16_t id;
 	dio_type type;
 	char name[8];
@@ -54,15 +54,14 @@ struct log
 	group groups[GROUPS_AMOUNT];
 	uint16_t amount;
 	uint8_t current_group_id;
-	LDD_TDeviceData *handle;
 };
 
-void init_distantio(LDD_TDeviceData *uart_device);
+void init_distantio();
 
-uint8_t register_var(void* ptr, uint16_t size, dio_type type, bool writeable, char* name);
+uint8_t register_var(void* ptr, uint16_t size, dio_type type, uint8_t writeable, char* name);
 void start_group(char* groupname);
 
-void distantio_decode(uint8* data,uint16_t datasize);
+void distantio_decode(uint8_t* data,uint16_t datasize);
 
 // To call often
 void send_variables();
