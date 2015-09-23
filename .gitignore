@@ -28,4 +28,7 @@ local.properties
 # PDT-specific
 .buildpath
 
-.FSFK_KL46Z/FLASH/
+## Flash folder
+
+.FLASH/
+.Documentation/
