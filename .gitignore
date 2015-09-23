@@ -30,4 +30,13 @@ local.properties
 
 ## Flash folder
 
-FSFK_KL46Z/FLASH/**
+FSFK_KL46Z/FLASH/
+FSFK_KL46Z/Documentation/
+FSFK_KL46Z/Generated_Code/
+FSFK_KL46Z/Library/
+FSFK_KL46Z/MQXLITE/
+FSFK_KL46Z/Project_Settings/
+FSFK_KL46Z/Static_Code/
+*.g_x
+*.g_c
+ProjectInfo.xml
