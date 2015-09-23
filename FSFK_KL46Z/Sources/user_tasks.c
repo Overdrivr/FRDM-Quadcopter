@@ -47,7 +47,26 @@ void on_protocol_encoded_frame(uint8_t* data, uint16_t datasize);
 
 static uint32_t counter;
 static float counter_float;
-static uint8 counter_uint8;
+static float acc_data[3];
+static float gyro_data[3];
+
+/// For fixing issue
+// See end of http://mcuoneclipse.com/2015/07/26/using-kinetis-design-studio-v3-0-0-with-the-launchad-4-9-2015-q2-release/
+
+void *_sbrk ( uint32_t delta )
+{
+extern char _end; /* Defined by the linker */
+static char *heap_end;
+char *prev_heap_end;
+
+  if (heap_end == 0) {
+    heap_end = &_end;
+  }
+
+  prev_heap_end = heap_end;
+  heap_end += delta;
+  return (void *) prev_heap_end;
+}
 
 void UserStartup(void)
 {
@@ -67,10 +86,15 @@ void UserStartup(void)
 	counter = 0;
 
 	// Register variables
-	register_var((void*)&counter, sizeof(counter), dio_type_UINT32, TRUE, "COUNTER");
-	start_group("TYPETEST");
-	register_var((void*)&counter_float, sizeof(counter_float), dio_type_FLOAT, TRUE, "FLOAT");
-	register_var((void*)&counter_uint8, sizeof(counter_uint8), dio_type_UINT8, FALSE, "UINT8");
+	start_group("ACC");
+	register_var((void*)&acc_data[0], sizeof(acc_data[0]), dio_type_FLOAT, 0, "x");
+	register_var((void*)&acc_data[1], sizeof(acc_data[1]), dio_type_FLOAT, 0, "y");
+	register_var((void*)&acc_data[2], sizeof(acc_data[2]), dio_type_FLOAT, 0, "z");
+	start_group("GYRO");
+	register_var((void*)&gyro_data[0], sizeof(gyro_data[0]), dio_type_FLOAT, 0, "x");
+	register_var((void*)&gyro_data[1], sizeof(gyro_data[1]), dio_type_FLOAT, 0, "y");
+	register_var((void*)&gyro_data[2], sizeof(gyro_data[2]), dio_type_FLOAT, 0, "z");
+
 
 }
 
@@ -110,22 +134,31 @@ void UserMediumFrequencyTaskRun(void)
 	static uint32_t alive_counter = 0;
 	static uint32_t send_variables_counter = 0;
 
-	counter++;
-	counter_float += 0.3f;
-
 	// Send alive signal
-	if(alive_counter >= 20)
+	if(alive_counter >= 15)
 	{
+		counter++;
 		send_alive();
 		alive_counter = 0;
 	}
 	else
 		alive_counter++;
 
+
+	acc_data[0] = thisAccel.fGp[0];
+	acc_data[1] = thisAccel.fGp[1];
+	acc_data[2] = thisAccel.fGp[2];
+
+	gyro_data[0] = thisGyro.iYp[0];
+	gyro_data[1] = thisGyro.iYp[1];
+	gyro_data[2] = thisGyro.iYp[2];
+
+	send_variables();
+
 	// Send variables
 	if(send_variables_counter >= 5)
 	{
-		send_variables();
+		counter_float += 0.3f;
 		send_variables_counter = 0;
 	}
 	else
